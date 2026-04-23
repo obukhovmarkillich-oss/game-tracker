@@ -73,21 +73,104 @@ class Achievement(Base):
     is_earned = Column(Boolean, default=False)  # статус
 ```
 
-**Новые эндпоинты API:**
-* `POST /games/{game_id}/achievements` — добавить достижение для игры;
-* `PUT /achievements/{achievement_id}` — обновить статус достижения;
-* `GET /stats` — получить статистику (общее время, количество достижений);
-* `PATCH /games/{game_id}/playtime` — обновить время игры (добавить минуты).
+#### 4. API эндпоинты (префикс `/api`)
 
-#### 4. Пояснительная записка (обновлённая часть)
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/register`, `/api/login` | Auth |
+| GET/POST/PUT/DELETE | `/api/games` | CRUD collection |
+| GET | `/api/games/{id}` | Detail |
+| PATCH | `/api/games/{id}/playtime` | Add minutes |
+| POST | `/api/games/{id}/achievements` | Add achievement |
+| PUT | `/api/achievements/{id}` | Update achievement |
+| GET | `/api/stats` | Aggregate stats |
+| GET | `/api/search` | Search/filter games |
+
+#### 5. Примеры curl запросов
+
+**Auth**
+```bash
+# Регистрация
+curl -X POST http://localhost:8000/api/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"testuser","email":"test@example.com","password":"secret1234"}'
+
+# Логин
+curl -X POST http://localhost:8000/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"testuser","password":"secret1234"}'
+```
+
+**Games**
+```bash
+# Создать игру
+curl -X POST http://localhost:8000/api/games \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -d '{"title":"Elden Ring","platform":"PC","tags":"RPG,Souls-like","rating":9,"play_time_minutes":3600}'
+
+# Список игр (пагинация)
+curl "http://localhost:8000/api/games?page=1&size=10" \
+  -H "Authorization: Bearer <TOKEN>"
+
+# Детали игры
+curl http://localhost:8000/api/games/1 \
+  -H "Authorization: Bearer <TOKEN>"
+
+# Обновить игру
+curl -X PUT http://localhost:8000/api/games/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -d '{"rating":10,"tags":"RPG,Souls-like,Open World"}'
+
+# Удалить игру
+curl -X DELETE http://localhost:8000/api/games/1 \
+  -H "Authorization: Bearer <TOKEN>"
+```
+
+**Playtime**
+```bash
+# Добавить время игры
+curl -X PATCH http://localhost:8000/api/games/1/playtime \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -d '{"minutes_to_add":120}'
+```
+
+**Achievements**
+```bash
+# Добавить достижение
+curl -X POST http://localhost:8000/api/games/1/achievements \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -d '{"name":"Roundtable","description":"Reached Roundtable Hill","is_earned":true}'
+
+# Обновить достижение
+curl -X PUT http://localhost:8000/api/achievements/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -d '{"is_earned":true}'
+```
+
+**Stats & Search**
+```bash
+# Получить статистику
+curl http://localhost:8000/api/stats \
+  -H "Authorization: Bearer <TOKEN>"
+
+# Поиск игр (RAWG)
+curl "http://localhost:8000/api/search?q=elden+ring&limit=5"
+```
+
+#### 7. Пояснительная записка (обновлённая часть)
 
 **Новые ключевые функции:**
-* **Учёт времени:** пользователь может добавлять минуты, проведённые в игре, через эндпоинт `PATCH /games/{id}/playtime`. Время суммируется.
+* **Учёт времени:** пользователь может добавлять минуты, проведённые в игре, через эндпоинт `PATCH /api/games/{id}/playtime`. Время суммируется.
 * **Достижения:** для каждой игры можно:
     * добавлять новые достижения (название, описание);
     * отмечать достижение как «полученное» с указанием даты;
     * редактировать/удалять достижения.
-* **Статистика:** эндпоинт `GET /stats` возвращает:
+* **Статистика:** эндпоинт `GET /api/stats` возвращает:
     * общее время игры во всех играх (в часах и минутах);
     * количество полученных достижений;
     * топ‑3 самых «потраченных» игр по времени;
@@ -99,7 +182,7 @@ class Achievement(Base):
 * для удобства отображения время конвертируется в часы и минуты на уровне API;
 * статистика рассчитывается динамически при запросе `/stats`.
 
-#### 5. Этапы разработки (1 неделя)
+#### 8. Этапы разработки (1 неделя)
 
 | День | Задача |
 |------|------|
@@ -111,14 +194,14 @@ class Achievement(Base):
 | 6 | Реализация учёта времени и статистики. Финальное тестирование. Исправление ошибок. Подготовка README. |
 | 7 | Развёртывание на хостинге. Подготовка презентации и пояснительной записки. |
 
-#### 6. Презентация (обновлённые слайды)
+#### 9. Презентация (обновлённые слайды)
 
-**Слайд 6. Новые функции: время и достижения**
+**Слайд 6. Новые функции: время и достижения**
 * скриншоты новых эндпоинтов в Swagger;
 * примеры запросов:
-    * обновление времени: `PATCH /games/1/playtime` → `{"minutes_to_add": 120}`;
-    * добавление достижения: `POST /games/1/achievements` → `{"name": "First Blood", "is_earned": true}`;
-    * статистика: `GET /stats` → `{"total_hours": 45, "achievements_count": 23}`.
+    * обновление времени: `PATCH /api/games/1/playtime` → `{"minutes_to_add": 120}`;
+    * добавление достижения: `POST /api/games/1/achievements` → `{"name": "First Blood", "is_earned": true}`;
+    * статистика: `GET /api/stats` → `{"total_play_time_minutes": 2700, "total_play_time_hours": 45.0, "total_achievements": 23, "earned_achievements": 15}`.
 
 **Слайд 7. Статистика и аналитика**
 * диаграмма: топ‑3 игр по времени;
@@ -142,7 +225,7 @@ class Achievement(Base):
     * графики прогресса по времени и достижениям;
     * уведомления о новых достижениях в играх.
 
-#### 7. Сдача проекта
+#### 10. Сдача проекта
 
 **Формат сдачи:**
 * Git‑репозиторий (GitHub/GitLab) с доступом для преподавателя;
@@ -152,7 +235,7 @@ class Achievement(Base):
     * презентацией (PDF/PPTX);
 * видеодемонстрация (опционально, 1–2 минуты): показать добавление игры, учёт времени, добавление достижения, просмотр статистики.
 
-#### 8. Ожидаемые результаты и оценка
+#### 11. Ожидаемые результаты и оценка
 
 **Соответствие критериям оценивания:**
 * **Объём кода:** 400–500 строк → 14 баллов.
@@ -168,5 +251,3 @@ class Achievement(Base):
 ---
 
 **Итог:** проект соответствует критериям оценивания для недельного индивидуального задания, имеет игровую тематику и включает функционал учёта времени и достижений, что делает его более интересным и практичным.
-
-Хотите, я уточню какой‑либо раздел или помогу с реализацией конкретного модуля
