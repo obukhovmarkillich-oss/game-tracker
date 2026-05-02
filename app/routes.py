@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app import auth
 from app.achievements import AchievementCreate, AchievementResponse, AchievementUpdate
-from app.external_api import search_games
+from app.external_api import get_game_details, search_games
 from app.models import Achievement, Game, User
 from app.utils import format_playtime, minutes_to_hours
 
@@ -73,6 +73,7 @@ class GameResponse(BaseModel):
     tags: Optional[str]
     play_time_minutes: int
     external_id: Optional[int]
+    details: Optional[dict[str, Any]] = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -208,7 +209,10 @@ def get_game(
     game = db.query(Game).filter(Game.id == game_id, Game.user_id == current_user.id).first()
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
-    return GameResponse.model_validate(game)
+    result = GameResponse.model_validate(game)
+    if game.external_id:
+        result.details = get_game_details(game.external_id)
+    return result
 
 
 @router.put("/games/{game_id}", response_model=GameResponse)
