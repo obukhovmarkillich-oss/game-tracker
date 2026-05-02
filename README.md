@@ -83,6 +83,7 @@ class Achievement(Base):
 | PATCH | `/api/games/{id}/playtime` | Add minutes |
 | POST | `/api/games/{id}/achievements` | Add achievement |
 | PUT | `/api/achievements/{id}` | Update achievement |
+| DELETE | `/api/achievements/{id}` | Delete achievement |
 | GET | `/api/stats` | Aggregate stats |
 | GET | `/api/search` | Search/filter games |
 
@@ -150,6 +151,10 @@ curl -X PUT http://localhost:8000/api/achievements/1 \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <TOKEN>" \
   -d '{"is_earned":true}'
+
+# Удалить достижение
+curl -X DELETE http://localhost:8000/api/achievements/1 \
+  -H "Authorization: Bearer <TOKEN>"
 ```
 
 **Stats & Search**
