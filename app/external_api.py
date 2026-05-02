@@ -15,8 +15,8 @@ def search_games(query: str, limit: int = 10) -> list:
             "name": game["name"],
             "released": game.get("released"),
             "background_image": game.get("background_image"),
-            "genres": [g["name"] for g in game.get("genres", [])],
-            "platforms": [p["platform"]["name"] for p in game.get("platforms", [])],
+            "genres": [g["name"] for g in game.get("genres", []) or []],
+            "platforms": [p["platform"]["name"] for p in game.get("platforms", []) or []],
         }
         for game in data.get("results", [])
     ]
