@@ -73,6 +73,33 @@ class Achievement(Base):
     is_earned = Column(Boolean, default=False)  # статус
 ```
 
+#### 3.1 Запуск проекта
+
+```bash
+# Активация виртуального окружения
+source venv/bin/activate
+
+# Установка зависимостей (если ещё не установлены)
+pip install -r requirements.txt
+
+# Запуск сервера
+python run.py
+```
+
+Сервер стартует на `http://localhost:8000`.
+
+#### 3.2 Документация API (Swagger / ReDoc)
+
+FastAPI автоматически генерирует интерактивную документацию на основе описаний эндпоинтов и Pydantic-моделей.
+
+| Интерфейс | URL |
+|-----------|-----|
+| **Swagger UI** | http://localhost:8000/docs |
+| **ReDoc** | http://localhost:8000/redoc |
+| **OpenAPI JSON** | http://localhost:8000/openapi.json |
+
+В Swagger UI можно тестировать запросы прямо из браузера (кнопка **Try it out**), просматривать схемы моделей и описания параметров.
+
 #### 4. API эндпоинты (префикс `/api`)
 
 | Method | Path | Purpose |

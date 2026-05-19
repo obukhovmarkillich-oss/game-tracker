@@ -109,7 +109,12 @@ class StatsResponse(BaseModel):
 
 # ── Auth endpoints ────────────────────────────────────────────────
 
-@router.post("/register", response_model=Token)
+@router.post(
+    "/register",
+    response_model=Token,
+    summary="Register a new user",
+    description="Create a new user account and return an access token. Password must be at least 8 characters.",
+)
 def register(user_data: UserCreate, db: Session = Depends(auth.get_db)):
     if db.query(User).filter(User.username == user_data.username).first():
         raise HTTPException(status_code=400, detail="Username already registered")
@@ -131,7 +136,12 @@ def register(user_data: UserCreate, db: Session = Depends(auth.get_db)):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.post("/login", response_model=Token)
+@router.post(
+    "/login",
+    response_model=Token,
+    summary="Login and get access token",
+    description="Authenticate with username (or email) and password. Returns a bearer token for subsequent requests.",
+)
 def login(user_data: UserLogin, db: Session = Depends(auth.get_db)):
     if not user_data.username and not user_data.email:
         raise HTTPException(status_code=400, detail="Username or email required")
@@ -148,12 +158,17 @@ def login(user_data: UserLogin, db: Session = Depends(auth.get_db)):
 
 # ── Games endpoints ───────────────────────────────────────────────
 
-@router.get("/games", response_model=GameListResponse)
+@router.get(
+    "/games",
+    response_model=GameListResponse,
+    summary="List user's games",
+    description="Return a paginated list of games owned by the authenticated user. Supports filtering by tag and minimum rating.",
+)
 def list_games(
-    page: int = Query(1, ge=1),
-    size: int = Query(10, ge=1, le=50),
-    tag: Optional[str] = None,
-    min_rating: Optional[int] = None,
+    page: int = Query(1, ge=1, description="Page number"),
+    size: int = Query(10, ge=1, le=50, description="Items per page (max 50)"),
+    tag: Optional[str] = Query(None, description="Filter by tag"),
+    min_rating: Optional[int] = Query(None, description="Filter by minimum rating"),
     current_user: User = Depends(auth.get_current_user),
     db: Session = Depends(auth.get_db),
 ):
@@ -178,7 +193,13 @@ def list_games(
     }
 
 
-@router.post("/games", response_model=GameResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/games",
+    response_model=GameResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a new game",
+    description="Create a new game entry in the authenticated user's collection.",
+)
 def create_game(
     game_data: GameCreate,
     current_user: User = Depends(auth.get_current_user),
@@ -200,7 +221,12 @@ def create_game(
     return GameResponse.model_validate(game)
 
 
-@router.get("/games/{game_id}", response_model=GameResponse)
+@router.get(
+    "/games/{game_id}",
+    response_model=GameResponse,
+    summary="Get game details",
+    description="Return details of a specific game. Includes external API data if an external_id is set.",
+)
 def get_game(
     game_id: int,
     current_user: User = Depends(auth.get_current_user),
@@ -215,7 +241,12 @@ def get_game(
     return result
 
 
-@router.put("/games/{game_id}", response_model=GameResponse)
+@router.put(
+    "/games/{game_id}",
+    response_model=GameResponse,
+    summary="Update a game",
+    description="Update fields of an existing game. Only provided fields will be changed.",
+)
 def update_game(
     game_id: int,
     game_data: GameUpdate,
@@ -235,7 +266,12 @@ def update_game(
     return GameResponse.model_validate(game)
 
 
-@router.delete("/games/{game_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/games/{game_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a game",
+    description="Permanently remove a game from the user's collection.",
+)
 def delete_game(
     game_id: int,
     current_user: User = Depends(auth.get_current_user),
@@ -248,7 +284,12 @@ def delete_game(
     db.commit()
 
 
-@router.patch("/games/{game_id}/playtime", response_model=GameResponse)
+@router.patch(
+    "/games/{game_id}/playtime",
+    response_model=GameResponse,
+    summary="Add playtime to a game",
+    description="Add minutes to the total playtime of an existing game.",
+)
 def add_playtime(
     game_id: int,
     playtime_data: PlayTimeUpdate,
@@ -267,7 +308,13 @@ def add_playtime(
 
 # ── Achievements endpoints ────────────────────────────────────────
 
-@router.post("/games/{game_id}/achievements", response_model=AchievementResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/games/{game_id}/achievements",
+    response_model=AchievementResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add an achievement to a game",
+    description="Create a new achievement entry for a specific game in the user's collection.",
+)
 def create_achievement(
     game_id: int,
     achievement_data: AchievementCreate,
@@ -291,7 +338,12 @@ def create_achievement(
     return AchievementResponse.model_validate(achievement)
 
 
-@router.put("/achievements/{achievement_id}", response_model=AchievementResponse)
+@router.put(
+    "/achievements/{achievement_id}",
+    response_model=AchievementResponse,
+    summary="Update an achievement",
+    description="Update fields of an existing achievement. Only provided fields will be changed.",
+)
 def update_achievement(
     achievement_id: int,
     achievement_data: AchievementUpdate,
@@ -313,7 +365,12 @@ def update_achievement(
     return AchievementResponse.model_validate(achievement)
 
 
-@router.delete("/achievements/{achievement_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/achievements/{achievement_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete an achievement",
+    description="Permanently remove an achievement from a game.",
+)
 def delete_achievement(
     achievement_id: int,
     current_user: User = Depends(auth.get_current_user),
@@ -330,7 +387,12 @@ def delete_achievement(
 
 # ── Stats endpoint ────────────────────────────────────────────────
 
-@router.get("/stats", response_model=StatsResponse)
+@router.get(
+    "/stats",
+    response_model=StatsResponse,
+    summary="Get user collection statistics",
+    description="Return aggregate statistics for the authenticated user's game collection: total playtime, achievements progress, top games, and average rating.",
+)
 def get_stats(
     current_user: User = Depends(auth.get_current_user),
     db: Session = Depends(auth.get_db),
@@ -366,10 +428,14 @@ def get_stats(
 
 # ── Search endpoint ───────────────────────────────────────────────
 
-@router.get("/search")
+@router.get(
+    "/search",
+    summary="Search games via external API",
+    description="Search for games using an external game database. Returns matching titles with metadata.",
+)
 def search(
-    q: str = Query(..., min_length=1),
-    limit: int = Query(10, ge=1, le=50),
+    q: str = Query(..., min_length=1, description="Search query"),
+    limit: int = Query(10, ge=1, le=50, description="Maximum number of results"),
 ):
     results = search_games(q, limit=limit)
     return {"query": q, "results": results}
